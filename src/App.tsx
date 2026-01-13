@@ -17,6 +17,7 @@ const Alertas = lazy(() => import("./pages/Alertas"));
 const Relatorios = lazy(() => import("./pages/Relatorios"));
 const Sanitario = lazy(() => import("./pages/Sanitario"));
 const Perfil = lazy(() => import("./pages/Perfil"));
+const AlterarSenha = lazy(() => import("./pages/AlterarSenha"));
 const Configuracoes = lazy(() => import("./pages/Configuracoes"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -140,6 +141,7 @@ function App() {
               <Route path="/relatorios" element={<ProtectedRoute><Relatorios /></ProtectedRoute>} />
               <Route path="/sanitario" element={<ProtectedRoute><Sanitario /></ProtectedRoute>} />
               <Route path="/perfil" element={<ProtectedRoute><Perfil /></ProtectedRoute>} />
+              <Route path="/alterar-senha" element={<ProtectedRoute><AlterarSenha /></ProtectedRoute>} />
               <Route path="/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>

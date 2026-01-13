@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Bell, User, LogOut, Settings } from "lucide-react";
+import { Bell, User, LogOut, Settings, Key } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -138,6 +138,10 @@ export function Header() {
               <DropdownMenuItem onClick={() => navigate('/perfil')}>
                 <User className="mr-2 h-4 w-4" />
                 Perfil
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/alterar-senha')}>
+                <Key className="mr-2 h-4 w-4" />
+                Alterar Senha
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate('/configuracoes')}>
                 <Settings className="mr-2 h-4 w-4" />

@@ -140,24 +140,6 @@ const Perfil = () => {
                         </div>
                     </CardContent>
                 </Card>
-
-                <Card className="border-none bg-white/50 backdrop-blur-sm ring-1 ring-black/5 shadow-sm">
-                    <CardHeader>
-                        <CardTitle className="text-xl font-bold text-primary">Segurança</CardTitle>
-                        <CardDescription>Altere sua senha de acesso</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="text-sm text-muted-foreground mb-4">
-                            Para alterar sua senha, use a opção "Esqueci minha senha" na tela de login.
-                        </p>
-                        <Button variant="outline" onClick={() => {
-                            supabase.auth.signOut();
-                            window.location.href = '/auth';
-                        }}>
-                            Ir para Tela de Login
-                        </Button>
-                    </CardContent>
-                </Card>
             </div>
         </Layout>
     );
