@@ -13,6 +13,7 @@ import Producao from "./pages/Producao";
 import Reproducao from "./pages/Reproducao";
 import Alertas from "./pages/Alertas";
 import Relatorios from "./pages/Relatorios";
+import Sanitario from "./pages/Sanitario";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -106,6 +107,7 @@ function App() {
             <Route path="/reproducao" element={<ProtectedRoute><Reproducao /></ProtectedRoute>} />
             <Route path="/alertas" element={<ProtectedRoute><Alertas /></ProtectedRoute>} />
             <Route path="/relatorios" element={<ProtectedRoute><Relatorios /></ProtectedRoute>} />
+            <Route path="/sanitario" element={<ProtectedRoute><Sanitario /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

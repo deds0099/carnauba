@@ -21,7 +21,7 @@ const animalFormSchema = z.object({
   nome: z.string().min(1, "Nome é obrigatório"),
   data_nascimento: z.string().min(1, "Data de nascimento é obrigatória"),
   raca: z.string().min(1, "Raça é obrigatória"),
-  data_proximo_parto: z.string().optional(),
+  data_proximo_parto: z.string().optional().nullable(),
   status: z.enum(["lactante", "seca", "prenhe"]),
 });
 

@@ -2,12 +2,12 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
 } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -24,6 +24,7 @@ import autoTable from 'jspdf-autotable';
 type Animal = Database["public"]["Tables"]["animais"]["Row"];
 type Producao = Database["public"]["Tables"]["producao"]["Row"];
 type Reproducao = Database["public"]["Tables"]["reproducao"]["Row"];
+type ManejoSanitario = Database["public"]["Tables"]["manejo_sanitario"]["Row"];
 
 export default function Relatorios() {
   const [tipoRelatorio, setTipoRelatorio] = useState("producao");
@@ -35,10 +36,12 @@ export default function Relatorios() {
     producao: Producao[];
     animais: Animal[];
     reproducao: Reproducao[];
+    sanitario: (ManejoSanitario & { animais: { nome: string; numero: string } | null })[];
   }>({
     producao: [],
     animais: [],
     reproducao: [],
+    sanitario: [],
   });
   const { toast } = useToast();
 
@@ -102,10 +105,28 @@ export default function Relatorios() {
 
       if (reproducaoError) throw reproducaoError;
 
+      // Carregar dados sanitários
+      const { data: sanitario, error: sanitarioError } = await supabase
+        .from("manejo_sanitario")
+        .select(`
+          *,
+          animais (
+            nome,
+            numero
+          )
+        `)
+        .eq("user_id", user_id)
+        .gte("data_aplicacao", inicio.toISOString().split("T")[0])
+        .lte("data_aplicacao", fim.toISOString().split("T")[0])
+        .order("data_aplicacao", { ascending: true });
+
+      if (sanitarioError) throw sanitarioError;
+
       setDados({
         producao: producao || [],
         animais: animais || [],
         reproducao: reproducao || [],
+        sanitario: sanitario || [],
       });
     } catch (error: any) {
       toast({
@@ -140,6 +161,15 @@ export default function Relatorios() {
             status: r.status
           };
         });
+      } else if (tipoRelatorio === "sanitario") {
+        reportData = dados.sanitario.map(s => ({
+          data: formatDate(s.data_aplicacao),
+          animal: s.animais ? `${s.animais.numero} (${s.animais.nome})` : 'N/A',
+          vacina: s.nome_vacina,
+          dose: s.dose || '-',
+          revacinacao: s.proxima_dose ? formatDate(s.proxima_dose) : '-',
+          obs: s.observacoes || '-'
+        }));
       } else if (tipoRelatorio === "animais") {
         reportData = dados.animais.map(a => ({
           numero: a.numero,
@@ -163,18 +193,18 @@ export default function Relatorios() {
       if (formatoExportacao === "pdf") {
         // Criar PDF usando jsPDF
         const doc = new jsPDF();
-        
+
         // Adicionar título
         doc.setFontSize(16);
         doc.text(`Relatório de ${tipoRelatorio.charAt(0).toUpperCase() + tipoRelatorio.slice(1)}`, 14, 15);
-        
+
         // Adicionar período
         doc.setFontSize(12);
         doc.text(`Período: ${formatDate(dataInicio?.toISOString().split('T')[0] || '')} a ${formatDate(dataFim?.toISOString().split('T')[0] || '')}`, 14, 25);
 
         // Preparar dados para a tabela
         const tableData = reportData.map(row => Object.values(row));
-        const headers = Object.keys(reportData[0] || {}).map(key => 
+        const headers = Object.keys(reportData[0] || {}).map(key =>
           key.replace(/_/g, ' ').toUpperCase()
         );
 
@@ -204,11 +234,11 @@ export default function Relatorios() {
         const headers = Object.keys(reportData[0] || {}).join(',');
         const rows = reportData.map(row => Object.values(row).join(','));
         const csvContent = [headers, ...rows].join('\n');
-        
+
         // Criar blob com o conteúdo CSV
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const url = window.URL.createObjectURL(blob);
-        
+
         // Criar link de download
         const link = document.createElement('a');
         link.href = url;
@@ -259,6 +289,13 @@ export default function Relatorios() {
       };
     }
 
+    if (tipoRelatorio === "sanitario") {
+      return {
+        totalAplicacoes: dados.sanitario.length,
+        vacinasDistintas: new Set(dados.sanitario.map(s => s.nome_vacina)).size
+      };
+    }
+
     return {};
   };
 
@@ -272,7 +309,7 @@ export default function Relatorios() {
           Gerar Relatório
         </Button>
       </PageHeader>
-      
+
       <Card className="mb-6">
         <CardHeader>
           <CardTitle>Configuração do Relatório</CardTitle>
@@ -289,13 +326,14 @@ export default function Relatorios() {
                   <SelectValue placeholder="Selecione o tipo" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="producao">Produção</SelectItem>
-                  <SelectItem value="reproducao">Reprodução</SelectItem>
-                  <SelectItem value="animais">Animais</SelectItem>
+                  <SelectItem value="producao">Produção Leiteira</SelectItem>
+                  <SelectItem value="reproducao">Manejo Reprodutivo</SelectItem>
+                  <SelectItem value="sanitario">Manejo Sanitário</SelectItem>
+                  <SelectItem value="animais">Inventário Animal</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="space-y-2">
               <label className="text-sm font-medium">Período</label>
               <Select value={periodoRelatorio} onValueChange={setPeriodoRelatorio}>
@@ -310,7 +348,7 @@ export default function Relatorios() {
                 </SelectContent>
               </Select>
             </div>
-            
+
             {periodoRelatorio === "personalizado" && (
               <>
                 <div className="space-y-2">
@@ -335,7 +373,7 @@ export default function Relatorios() {
                     </PopoverContent>
                   </Popover>
                 </div>
-                
+
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Data Final</label>
                   <Popover>
@@ -360,7 +398,7 @@ export default function Relatorios() {
                 </div>
               </>
             )}
-            
+
             <div className="space-y-2">
               <label className="text-sm font-medium">Formato</label>
               <Select value={formatoExportacao} onValueChange={setFormatoExportacao}>
@@ -376,12 +414,12 @@ export default function Relatorios() {
           </div>
         </CardContent>
       </Card>
-      
+
       <Tabs defaultValue="preview">
         <TabsList className="mb-4">
           <TabsTrigger value="preview">Prévia</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="preview">
           {tipoRelatorio === "producao" && (
             <Card>
@@ -389,11 +427,11 @@ export default function Relatorios() {
                 <CardTitle>Prévia do Relatório - Produção</CardTitle>
               </CardHeader>
               <CardContent>
-                <ProducaoChart 
+                <ProducaoChart
                   data={dados.producao}
                   tipo="diario"
                 />
-                
+
                 <div className="mt-6 border rounded-md p-4">
                   <h3 className="font-medium text-lg mb-2">Resumo de Produção</h3>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -418,7 +456,7 @@ export default function Relatorios() {
               </CardContent>
             </Card>
           )}
-          
+
           {tipoRelatorio === "reproducao" && (
             <Card>
               <CardHeader>
@@ -445,7 +483,7 @@ export default function Relatorios() {
               </CardContent>
             </Card>
           )}
-          
+
           {tipoRelatorio === "animais" && (
             <Card>
               <CardHeader>

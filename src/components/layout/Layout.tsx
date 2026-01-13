@@ -11,12 +11,12 @@ export function Layout({ children }: PropsWithChildren) {
       {/* Desktop Sidebar */}
       <div className="hidden md:flex w-72 flex-col bg-[#1a3a2a] border-r border-[#234534] shadow-2xl z-20">
         <div className="flex items-center gap-3 p-6 border-b border-white/10">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#d4af37] to-[#ffcc33] flex items-center justify-center shadow-lg ring-1 ring-white/20">
-            <Compass className="text-white h-6 w-6 stroke-[2.5px]" />
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden shadow-lg ring-1 ring-white/20 bg-white">
+            <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
           </div>
           <div className="flex flex-col">
-            <span className="text-lg font-bold text-white tracking-tight leading-none">Agro Cow</span>
-            <span className="text-[10px] text-white/40 font-medium uppercase tracking-[0.2em] mt-1">Compass System</span>
+            <span className="text-lg font-bold text-white tracking-tight leading-none">AgroCarnaúba</span>
+            <span className="text-[10px] text-white/40 font-medium uppercase tracking-[0.2em] mt-1">Gestão Inteligente</span>
           </div>
         </div>
         <div className="flex-1 overflow-y-auto py-4">
@@ -46,12 +46,12 @@ export function Layout({ children }: PropsWithChildren) {
           }`}
       >
         <div className="flex items-center gap-3 p-6 border-b border-white/10">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#d4af37] to-[#ffcc33] flex items-center justify-center">
-            <Compass className="text-white h-6 w-6" />
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden bg-white">
+            <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
           </div>
           <div className="flex flex-col">
-            <span className="text-lg font-bold text-white tracking-tight leading-none">Agro Cow</span>
-            <span className="text-[10px] text-white/40 font-medium uppercase tracking-[0.2em] mt-1">Compass System</span>
+            <span className="text-lg font-bold text-white tracking-tight leading-none">AgroCarnaúba</span>
+            <span className="text-[10px] text-white/40 font-medium uppercase tracking-[0.2em] mt-1">Gestão Inteligente</span>
           </div>
         </div>
         <div className="flex-1 overflow-y-auto py-4">

@@ -6,7 +6,8 @@ import {
   BarChart3,
   FileSpreadsheet,
   Bell,
-  LogOut
+  LogOut,
+  Syringe
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -30,6 +31,7 @@ export function SidebarNav() {
     { title: "Rebanho", url: "/animais", icon: Database },
     { title: "Ordenha", url: "/producao", icon: BarChart3 },
     { title: "Manejo", url: "/reproducao", icon: Calendar },
+    { title: "Sanitário", url: "/sanitario", icon: Syringe },
     { title: "Relatórios", url: "/relatorios", icon: FileSpreadsheet },
     { title: "Alertas", url: "/alertas", icon: Bell },
   ];
@@ -47,8 +49,8 @@ export function SidebarNav() {
               to={item.url}
               end
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group ${isActive
-                  ? "bg-secondary/20 text-white shadow-sm ring-1 ring-white/10"
-                  : "text-white/60 hover:text-white hover:bg-white/5"
+                ? "bg-secondary/20 text-white shadow-sm ring-1 ring-white/10"
+                : "text-white/60 hover:text-white hover:bg-white/5"
                 }`}
             >
               <item.icon className={`h-5 w-5 shrink-0 transition-transform duration-200 ${isActive ? "scale-110" : "group-hover:scale-110"}`} />
