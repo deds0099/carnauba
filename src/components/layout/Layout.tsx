@@ -9,9 +9,9 @@ export function Layout({ children }: PropsWithChildren) {
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background">
       {/* Desktop Sidebar */}
-      <div className="hidden md:flex w-72 flex-col bg-sidebar-background border-r border-sidebar-border shadow-2xl z-20">
-        <div className="flex items-center gap-3 p-6 border-b border-sidebar-border/50">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sidebar-primary to-[#ffcc33] flex items-center justify-center shadow-lg ring-1 ring-white/20">
+      <div className="hidden md:flex w-72 flex-col bg-[#1a3a2a] border-r border-[#234534] shadow-2xl z-20">
+        <div className="flex items-center gap-3 p-6 border-b border-white/10">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#d4af37] to-[#ffcc33] flex items-center justify-center shadow-lg ring-1 ring-white/20">
             <Compass className="text-white h-6 w-6 stroke-[2.5px]" />
           </div>
           <div className="flex flex-col">
@@ -42,11 +42,11 @@ export function Layout({ children }: PropsWithChildren) {
 
       {/* Mobile Sidebar */}
       <div
-        className={`md:hidden fixed inset-y-0 left-0 z-40 w-[280px] bg-sidebar-background transform transition-transform duration-500 ease-out ${isMobileMenuOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full"
+        className={`md:hidden fixed inset-y-0 left-0 z-40 w-[280px] bg-[#1a3a2a] transform transition-transform duration-500 ease-out ${isMobileMenuOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full"
           }`}
       >
-        <div className="flex items-center gap-3 p-6 border-b border-sidebar-border/50">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sidebar-primary to-[#ffcc33] flex items-center justify-center">
+        <div className="flex items-center gap-3 p-6 border-b border-white/10">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#d4af37] to-[#ffcc33] flex items-center justify-center">
             <Compass className="text-white h-6 w-6" />
           </div>
           <div className="flex flex-col">
