@@ -102,25 +102,9 @@ export default function Producao() {
     }
   };
 
-  const handleExportar = () => {
-    // Implementação para exportar relatórios (PDF/Excel)
-    console.log("Exportando dados de produção...");
-    alert("Funcionalidade de exportação seria implementada aqui.");
-  };
-
   return (
     <div className="space-y-8 animate-fade-in pb-12">
-      <PageHeader title="Produção de Leite">
-        <div className="flex items-center gap-3">
-          <Button variant="outline" onClick={handleExportar} className="glass border-primary/20 text-primary hover:bg-primary/5 rounded-xl font-bold">
-            <FileText className="mr-2 h-4 w-4" />
-            Exportar
-          </Button>
-          <Button className="rounded-xl shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 font-bold px-6">
-            <Plus className="mr-2 h-4 w-4" /> Registrar Ordenha
-          </Button>
-        </div>
-      </PageHeader>
+      <PageHeader title="Produção de Leite" />
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         <Card className="lg:col-span-3 border-none bg-white/50 backdrop-blur-sm ring-1 ring-black/5 shadow-sm overflow-hidden">

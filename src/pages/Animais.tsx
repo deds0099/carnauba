@@ -13,6 +13,7 @@ import {
   DialogTrigger
 } from "@/components/ui/dialog";
 import { AnimalForm } from "@/components/animais/AnimalForm";
+import { AnimalDetailsDialog } from "@/components/animais/AnimalDetailsDialog";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database as DB } from "@/integrations/supabase/types";
 import { useToast } from "@/components/ui/use-toast";
@@ -24,7 +25,9 @@ export default function Animais() {
   const [animais, setAnimais] = useState<Animal[]>([]);
   const [busca, setBusca] = useState("");
   const [animalEmEdicao, setAnimalEmEdicao] = useState<Animal | undefined>(undefined);
+  const [animalSelecionado, setAnimalSelecionado] = useState<Animal | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -223,25 +226,29 @@ export default function Animais() {
                       <Trash2 size={16} />
                     </Button>
                   </div>
-                  <Button variant="ghost" size="sm" className="h-8 text-[10px] font-bold uppercase tracking-wider text-primary hover:bg-primary/5">
-                    Detalhes <Plus size={12} className="ml-1" />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 text-[10px] font-bold uppercase tracking-wider text-primary hover:bg-primary/5"
+                    onClick={() => {
+                      setAnimalSelecionado(animal);
+                      setIsDetailsDialogOpen(true);
+                    }}
+                  >
+                    Detalhes <Info size={12} className="ml-1" />
                   </Button>
                 </div>
               </div>
             </CardContent>
           </Card>
         ))}
-
-        {animaisFiltrados.length === 0 && (
-          <div className="col-span-full py-20 text-center glass rounded-3xl border-dashed border-2 border-primary/10">
-            <div className="w-16 h-16 bg-primary/5 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Database className="text-primary/20 h-8 w-8" />
-            </div>
-            <h3 className="text-lg font-bold text-primary">Nenhum animal encontrado</h3>
-            <p className="text-muted-foreground font-medium">Tente ajustar sua busca ou cadastre um novo animal.</p>
-          </div>
-        )}
       </div>
+
+      <AnimalDetailsDialog
+        animal={animalSelecionado}
+        open={isDetailsDialogOpen}
+        onOpenChange={setIsDetailsDialogOpen}
+      />
     </div>
   );
 }
