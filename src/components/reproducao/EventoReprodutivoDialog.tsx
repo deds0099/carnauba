@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { fixDateTimezone } from "@/lib/date-utils";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -11,15 +11,17 @@ import { useToast } from "@/hooks/use-toast";
 import type { Database } from "@/integrations/supabase/types";
 
 type Animal = Database["public"]["Tables"]["animais"]["Row"];
+type EventoReproducao = Database["public"]["Tables"]["reproducao"]["Row"];
 
 interface EventoReprodutivoDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     animais: Animal[];
     onSuccess: () => void;
+    eventoParaEditar?: EventoReproducao;
 }
 
-export function EventoReprodutivoDialog({ open, onOpenChange, animais, onSuccess }: EventoReprodutivoDialogProps) {
+export function EventoReprodutivoDialog({ open, onOpenChange, animais, onSuccess, eventoParaEditar }: EventoReprodutivoDialogProps) {
     const [loading, setLoading] = useState(false);
     const [tipoEvento, setTipoEvento] = useState<string>("inseminacao");
     const { toast } = useToast();
@@ -37,6 +39,39 @@ export function EventoReprodutivoDialog({ open, onOpenChange, animais, onSuccess
         observacoes: "",
     });
 
+    useEffect(() => {
+        if (open && eventoParaEditar) {
+            setTipoEvento(eventoParaEditar.tipo_evento || "inseminacao");
+            setFormData({
+                animal_id: eventoParaEditar.animal_id,
+                data_inseminacao: eventoParaEditar.data_inseminacao || "",
+                touro: eventoParaEditar.touro || "",
+                tecnico: eventoParaEditar.tecnico || "",
+                protocolo: eventoParaEditar.protocolo || "",
+                data_diagnostico: eventoParaEditar.data_diagnostico || "",
+                resultado_diagnostico: eventoParaEditar.resultado_diagnostico || "",
+                data_parto_real: eventoParaEditar.data_parto_real || "",
+                data_secagem: eventoParaEditar.data_secagem || "",
+                observacoes: eventoParaEditar.observacoes || "",
+            });
+        } else if (open && !eventoParaEditar) {
+            // Reset form when opening for new event
+            setFormData({
+                animal_id: "",
+                data_inseminacao: "",
+                touro: "",
+                tecnico: "",
+                protocolo: "",
+                data_diagnostico: "",
+                resultado_diagnostico: "",
+                data_parto_real: "",
+                data_secagem: "",
+                observacoes: "",
+            });
+            setTipoEvento("inseminacao");
+        }
+    }, [open, eventoParaEditar]);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
@@ -45,17 +80,19 @@ export function EventoReprodutivoDialog({ open, onOpenChange, animais, onSuccess
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) throw new Error("Usuário não autenticado");
 
-            let status = "pendente";
-            let data_prevista_parto: string | null = null;
+            let status = eventoParaEditar?.status || "pendente"; // Keep existing status if editing, or default to pendente
+            let data_prevista_parto: string | null = eventoParaEditar?.data_prevista_parto || null;
 
-            // Calcular data prevista de parto (280 dias após IA)
-            if (tipoEvento === "inseminacao" && formData.data_inseminacao) {
-                const dataIA = new Date(formData.data_inseminacao);
-                const dataParto = new Date(dataIA.getTime() + 280 * 24 * 60 * 60 * 1000);
-                data_prevista_parto = dataParto.toISOString().split('T')[0];
+            // Recalculate if it's a new event or if changing insemination data
+            if (!eventoParaEditar || (tipoEvento === "inseminacao" && formData.data_inseminacao !== eventoParaEditar.data_inseminacao)) {
+                if (tipoEvento === "inseminacao" && formData.data_inseminacao) {
+                    const dataIA = new Date(formData.data_inseminacao);
+                    const dataParto = new Date(dataIA.getTime() + 280 * 24 * 60 * 60 * 1000);
+                    data_prevista_parto = dataParto.toISOString().split('T')[0];
+                }
             }
 
-            // Definir status baseado no tipo de evento
+            // Update status logic
             if (tipoEvento === "diagnostico" && formData.resultado_diagnostico) {
                 status = formData.resultado_diagnostico;
             } else if (tipoEvento === "parto") {
@@ -89,45 +126,47 @@ export function EventoReprodutivoDialog({ open, onOpenChange, animais, onSuccess
 
             eventoData.observacoes = formData.observacoes || null;
 
-            const { error } = await supabase.from("reproducao").insert([eventoData]);
+            let error;
+            if (eventoParaEditar) {
+                const { error: updateError } = await supabase
+                    .from("reproducao")
+                    .update(eventoData)
+                    .eq("id", eventoParaEditar.id);
+                error = updateError;
+            } else {
+                const { error: insertError } = await supabase
+                    .from("reproducao")
+                    .insert([eventoData]);
+                error = insertError;
+            }
 
             if (error) throw error;
 
             toast({
-                title: "Evento registrado!",
-                description: "O evento reprodutivo foi salvo com sucesso.",
+                title: eventoParaEditar ? "Evento atualizado!" : "Evento registrado!",
+                description: "As informações foram salvas com sucesso.",
             });
 
-            // Atualizar status do animal se necessário
-            if (tipoEvento === "diagnostico" && formData.resultado_diagnostico === "prenhe") {
-                await supabase
-                    .from("animais")
-                    .update({ status: "prenhe" })
-                    .eq("id", formData.animal_id);
-            } else if (tipoEvento === "parto") {
-                await supabase
-                    .from("animais")
-                    .update({ status: "lactante", data_proximo_parto: null })
-                    .eq("id", formData.animal_id);
+            // Atualizar status do animal se necessário (apenas para novos registros ou mudanças de status)
+            if (!eventoParaEditar || status !== eventoParaEditar.status) {
+                if (tipoEvento === "diagnostico" && formData.resultado_diagnostico === "prenhe") {
+                    await supabase
+                        .from("animais")
+                        .update({ status: "prenhe" })
+                        .eq("id", formData.animal_id);
+                } else if (tipoEvento === "parto") {
+                    await supabase
+                        .from("animais")
+                        .update({ status: "lactante", data_proximo_parto: null })
+                        .eq("id", formData.animal_id);
+                }
             }
 
             onSuccess();
             onOpenChange(false);
-            setFormData({
-                animal_id: "",
-                data_inseminacao: "",
-                touro: "",
-                tecnico: "",
-                protocolo: "",
-                data_diagnostico: "",
-                resultado_diagnostico: "",
-                data_parto_real: "",
-                data_secagem: "",
-                observacoes: "",
-            });
         } catch (error: any) {
             toast({
-                title: "Erro ao registrar evento",
+                title: "Erro ao salvar",
                 description: error.message,
                 variant: "destructive",
             });

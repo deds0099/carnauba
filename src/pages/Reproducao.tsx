@@ -6,14 +6,42 @@ import { Progress } from "@/components/ui/progress";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Calendar, BarChart3, List } from "lucide-react";
+import { Plus, Calendar, BarChart3, List, Edit, Trash2, Info } from "lucide-react";
 import { useReproducao } from "@/hooks/useReproducao";
 import { EventoReprodutivoDialog } from "@/components/reproducao/EventoReprodutivoDialog";
 import { CalendarioManejo } from "@/components/reproducao/CalendarioManejo";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import type { Database } from "@/integrations/supabase/types";
+
+type EventoReproducao = Database["public"]["Tables"]["reproducao"]["Row"];
 
 export default function Reproducao() {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [eventoParaEditar, setEventoParaEditar] = useState<EventoReproducao | undefined>(undefined);
   const { animais, eventos, loading, indicadores, acoesPendentes, recarregar } = useReproducao();
+  const { toast } = useToast();
+
+  const handleDeleteEvento = async (id: string) => {
+    if (!confirm("Tem certeza que deseja excluir este evento?")) return;
+
+    try {
+      const { error } = await supabase.from("reproducao").delete().eq("id", id);
+      if (error) throw error;
+
+      toast({
+        title: "Evento excluído",
+        description: "O registro foi removido com sucesso.",
+      });
+      recarregar();
+    } catch (error: any) {
+      toast({
+        title: "Erro ao excluir",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
 
   if (loading) {
     return (
@@ -29,7 +57,10 @@ export default function Reproducao() {
   return (
     <div className="space-y-8 animate-fade-in pb-12">
       <PageHeader title="Manejo Reprodutivo">
-        <Button onClick={() => setDialogOpen(true)} className="shadow-md">
+        <Button onClick={() => {
+          setEventoParaEditar(undefined);
+          setDialogOpen(true);
+        }} className="shadow-md">
           <Plus className="h-4 w-4 mr-2" />
           Novo Evento
         </Button>
@@ -133,6 +164,18 @@ export default function Reproducao() {
 
         {/* Aba de Calendário */}
         <TabsContent value="calendario" className="space-y-6">
+          <div className="flex items-start gap-4 p-4 rounded-lg bg-blue-50 border border-blue-100 mb-6">
+            <Info className="h-6 w-6 text-blue-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <h4 className="font-bold text-blue-800 text-sm mb-1">Como funciona este calendário?</h4>
+              <p className="text-sm text-blue-700 leading-relaxed">
+                Este não é um calendário comum. Ele mostra apenas as <strong>ações futuras pendentes</strong> que você precisa realizar, calculadas automaticamente com base nos seus registros.
+                <br />
+                Exemplo: Se você registrou uma inseminação, aparecerá aqui um aviso para fazer o diagnóstico após 30 dias.
+              </p>
+            </div>
+          </div>
+
           <Card className="border-none bg-gradient-to-r from-primary/5 to-secondary/5 glass ring-1 ring-black/5">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -166,7 +209,7 @@ export default function Reproducao() {
                   {eventos.slice(0, 10).map((evento) => {
                     const animal = animais.find(a => a.id === evento.animal_id);
                     return (
-                      <div key={evento.id} className="p-4 rounded-lg border border-black/5 hover:bg-primary/5 transition-colors">
+                      <div key={evento.id} className="p-4 rounded-lg border border-black/5 hover:bg-primary/5 transition-colors group">
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
@@ -183,14 +226,39 @@ export default function Reproducao() {
                               {evento.resultado_diagnostico && ` • ${evento.resultado_diagnostico}`}
                             </p>
                           </div>
-                          <Badge className={
-                            evento.status === "prenhe" ? "bg-emerald-600" :
-                              evento.status === "vazia" ? "bg-gray-500" :
-                                evento.status === "parto" ? "bg-blue-600" :
-                                  "bg-amber-600"
-                          }>
-                            {evento.status}
-                          </Badge>
+
+                          <div className="flex items-center gap-3">
+                            <Badge className={
+                              evento.status === "prenhe" ? "bg-emerald-600" :
+                                evento.status === "vazia" ? "bg-gray-500" :
+                                  evento.status === "parto" ? "bg-blue-600" :
+                                    "bg-amber-600"
+                            }>
+                              {evento.status}
+                            </Badge>
+
+                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 hover:bg-black/10"
+                                onClick={() => {
+                                  setEventoParaEditar(evento);
+                                  setDialogOpen(true);
+                                }}
+                              >
+                                <Edit className="h-4 w-4 text-muted-foreground" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 hover:bg-red-100 hover:text-red-600"
+                                onClick={() => handleDeleteEvento(evento.id)}
+                              >
+                                <Trash2 className="h-4 w-4 text-muted-foreground" />
+                              </Button>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     );
@@ -204,9 +272,13 @@ export default function Reproducao() {
 
       <EventoReprodutivoDialog
         open={dialogOpen}
-        onOpenChange={setDialogOpen}
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) setEventoParaEditar(undefined);
+        }}
         animais={animais}
         onSuccess={recarregar}
+        eventoParaEditar={eventoParaEditar}
       />
     </div>
   );
