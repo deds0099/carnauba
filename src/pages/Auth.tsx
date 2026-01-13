@@ -564,6 +564,17 @@ const Auth = () => {
                   </FormItem>
                 )}
               />
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-2">
+                <p className="text-sm font-semibold text-blue-900">Passos para recuperar sua senha:</p>
+                <ol className="text-sm text-blue-800 space-y-1 list-decimal list-inside">
+                  <li>Clique no link que será enviado para o seu email</li>
+                  <li>Você será redirecionado automaticamente para a página de redefinição de senha</li>
+                  <li>Digite sua nova senha e confirme</li>
+                  <li>Pronto! Faça login com sua nova senha</li>
+                </ol>
+              </div>
+
               <div className="flex gap-3 justify-end">
                 <Button
                   type="button"
