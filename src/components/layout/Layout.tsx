@@ -24,10 +24,11 @@ export function Layout({ children }: PropsWithChildren) {
         </div>
       </div>
 
-      {/* Mobile Menu Button - Glass effect - Top Left */}
+      {/* Mobile Menu Button - Glass effect - Dynamic position */}
       <button
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        className="md:hidden fixed top-4 left-4 z-50 p-3 rounded-2xl glass shadow-lg border-white/40 text-primary transition-all duration-300 active:scale-95 hover:shadow-xl"
+        className={`md:hidden fixed top-4 z-50 p-3 rounded-2xl glass shadow-lg border-white/40 text-primary transition-all duration-300 active:scale-95 hover:shadow-xl ${isMobileMenuOpen ? 'right-4' : 'left-4'
+          }`}
         aria-label="Menu"
       >
         {isMobileMenuOpen ? <X size={22} strokeWidth={2.5} /> : <Menu size={22} strokeWidth={2.5} />}

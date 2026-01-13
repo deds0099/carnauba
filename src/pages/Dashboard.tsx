@@ -102,18 +102,11 @@ export default function Dashboard() {
           <h1 className="text-3xl font-bold text-primary tracking-tight">
             {saudacao()}, <span className="text-gradient">{userName}</span>!
           </h1>
-          <p className="text-muted-foreground mt-1 font-medium">
-            Aqui está o que está acontecendo na sua fazenda hoje.
-          </p>
+
         </div>
-        <div className="flex items-center gap-3">
-          <div className="hidden sm:block text-right">
-            <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Hoje é</div>
-            <div className="text-sm font-semibold text-primary">{new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}</div>
-          </div>
-          <Button className="shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 rounded-xl px-6">
-            Novo Registro
-          </Button>
+        <div className="hidden sm:block text-right">
+          <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Hoje é</div>
+          <div className="text-sm font-semibold text-primary">{new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}</div>
         </div>
       </div>
 
