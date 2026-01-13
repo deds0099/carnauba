@@ -148,7 +148,7 @@ const Auth = () => {
 
       // Limpar qualquer dado de sessão anterior
       await supabase.auth.signOut();
-      
+
       // Fazer login novamente para garantir uma sessão limpa
       const { error: finalSignInError } = await supabase.auth.signInWithPassword({
         email: data.email,
@@ -173,8 +173,8 @@ const Auth = () => {
     <div className="flex items-center justify-center min-h-screen bg-gray-50 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
-          <CardTitle className="text-2xl text-primary font-bold">SOMVL</CardTitle>
-          <CardDescription>Sistema Online de Gestão de Vacas Leiteiras</CardDescription>
+          <CardTitle className="text-2xl text-primary font-bold">AgroCarnaúba</CardTitle>
+          <CardDescription>Gestão Inteligente</CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="login" className="w-full">
@@ -195,10 +195,10 @@ const Auth = () => {
                         <FormControl>
                           <div className="relative">
                             <Mail className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-                            <Input 
-                              placeholder="seu.email@exemplo.com" 
-                              className="pl-10" 
-                              {...field} 
+                            <Input
+                              placeholder="seu.email@exemplo.com"
+                              className="pl-10"
+                              {...field}
                             />
                           </div>
                         </FormControl>
@@ -216,11 +216,11 @@ const Auth = () => {
                         <FormControl>
                           <div className="relative">
                             <Key className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-                            <Input 
-                              placeholder="******" 
-                              type="password" 
-                              className="pl-10" 
-                              {...field} 
+                            <Input
+                              placeholder="******"
+                              type="password"
+                              className="pl-10"
+                              {...field}
                             />
                           </div>
                         </FormControl>
@@ -248,10 +248,10 @@ const Auth = () => {
                         <FormControl>
                           <div className="relative">
                             <User className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-                            <Input 
-                              placeholder="Seu nome completo" 
-                              className="pl-10" 
-                              {...field} 
+                            <Input
+                              placeholder="Seu nome completo"
+                              className="pl-10"
+                              {...field}
                             />
                           </div>
                         </FormControl>
@@ -269,10 +269,10 @@ const Auth = () => {
                         <FormControl>
                           <div className="relative">
                             <Mail className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-                            <Input 
-                              placeholder="seu.email@exemplo.com" 
-                              className="pl-10" 
-                              {...field} 
+                            <Input
+                              placeholder="seu.email@exemplo.com"
+                              className="pl-10"
+                              {...field}
                             />
                           </div>
                         </FormControl>
@@ -290,11 +290,11 @@ const Auth = () => {
                         <FormControl>
                           <div className="relative">
                             <Key className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-                            <Input 
-                              placeholder="******" 
-                              type="password" 
-                              className="pl-10" 
-                              {...field} 
+                            <Input
+                              placeholder="******"
+                              type="password"
+                              className="pl-10"
+                              {...field}
                             />
                           </div>
                         </FormControl>
@@ -312,11 +312,11 @@ const Auth = () => {
                         <FormControl>
                           <div className="relative">
                             <Key className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-                            <Input 
-                              placeholder="******" 
-                              type="password" 
-                              className="pl-10" 
-                              {...field} 
+                            <Input
+                              placeholder="******"
+                              type="password"
+                              className="pl-10"
+                              {...field}
                             />
                           </div>
                         </FormControl>
@@ -335,7 +335,7 @@ const Auth = () => {
         </CardContent>
         <CardFooter className="flex flex-col items-center">
           <p className="text-sm text-muted-foreground">
-            Sistema Online de Gestão de Vacas Leiteiras © {new Date().getFullYear()}
+            AgroCarnaúba © {new Date().getFullYear()}
           </p>
         </CardFooter>
       </Card>

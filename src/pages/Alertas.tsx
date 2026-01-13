@@ -54,6 +54,29 @@ export default function Alertas() {
 
       if (producaoError) throw producaoError;
 
+      // Carregar manejo sanitário
+      const { data: sanitario, error: sanitarioError } = await supabase
+        .from("manejo_sanitario")
+        .select(`
+          *,
+          animais (nome, numero)
+        `)
+        .eq("user_id", user.id)
+        .not("proxima_dose", "is", null);
+
+      if (sanitarioError) throw sanitarioError;
+
+      // Carregar reprodução
+      const { data: reproducao, error: reproducaoError } = await supabase
+        .from("reproducao")
+        .select(`
+          *,
+          animais (nome, numero)
+        `)
+        .eq("user_id", user.id);
+
+      if (reproducaoError) throw reproducaoError;
+
       // Carregar alertas resolvidos
       const { data: alertasResolvidos, error: alertasError } = await supabase
         .from("alertas")
@@ -64,14 +87,18 @@ export default function Alertas() {
 
       const novosAlertas: Alerta[] = [];
 
-      // Verificar próximos partos
+      // 1. Alertas de Reprodutivo: Partos (animais marcados como prenhes)
       animais?.forEach(animal => {
         if (animal.data_proximo_parto) {
           const dataParto = new Date(animal.data_proximo_parto);
-          const hoje = new Date();
-          const diffDias = Math.ceil((dataParto.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
+          // Ajuste de fuso horário para comparação correta
+          const dataPartoAjustada = new Date(dataParto.getTime() + dataParto.getTimezoneOffset() * 60000);
 
-          if (diffDias <= 7) {
+          const hoje = new Date();
+          const diffTempo = dataPartoAjustada.getTime() - hoje.getTime();
+          const diffDias = Math.ceil(diffTempo / (1000 * 60 * 60 * 24));
+
+          if (diffDias <= 15) { // Alerta a partir de 15 dias antes
             const alertaId = `parto-${animal.id}`;
             const alertaResolvido = alertasResolvidos?.find(a => a.id === alertaId);
 
@@ -79,35 +106,128 @@ export default function Alertas() {
               id: alertaId,
               tipo: "parto",
               animal: `${animal.numero} - ${animal.nome}`,
-              descricao: `Parto previsto para ${diffDias === 0 ? "hoje" : `em ${diffDias} dias`}`,
+              descricao: `Parto previsto para ${diffDias <= 0 ? "hoje ou atrasado" : `em ${diffDias} dias`} (${new Date(animal.data_proximo_parto).toLocaleDateString()})`,
               data: animal.data_proximo_parto,
               resolvido: alertaResolvido?.resolvido || false,
-              prioridade: diffDias <= 3 ? "alta" : "media"
+              prioridade: diffDias <= 5 ? "alta" : "media"
             });
           }
         }
       });
 
-      // Verificar queda na produção
+      // 2. Alertas de Produção: Queda brusca
       animais?.forEach(animal => {
         const producoesAnimal = producao?.filter(p => p.animal_id === animal.id);
         if (producoesAnimal && producoesAnimal.length >= 3) {
           const mediaAntiga = producoesAnimal.slice(1, 4).reduce((acc, p) => acc + p.quantidade, 0) / 3;
           const mediaRecente = producoesAnimal.slice(0, 3).reduce((acc, p) => acc + p.quantidade, 0) / 3;
-          const variacao = ((mediaRecente - mediaAntiga) / mediaAntiga) * 100;
 
-          if (variacao < -15) {
-            const alertaId = `producao-${animal.id}`;
+          // Evitar divisão por zero
+          if (mediaAntiga > 0) {
+            const variacao = ((mediaRecente - mediaAntiga) / mediaAntiga) * 100;
+
+            if (variacao < -20) { // Queda maior que 20%
+              const alertaId = `producao-${animal.id}-${producoesAnimal[0].data}`;
+              const alertaResolvido = alertasResolvidos?.find(a => a.id === alertaId);
+
+              novosAlertas.push({
+                id: alertaId,
+                tipo: "producao",
+                animal: `${animal.numero} - ${animal.nome}`,
+                descricao: `Queda de ${Math.abs(variacao).toFixed(1)}% na produção recente.`,
+                data: producoesAnimal[0].data,
+                resolvido: alertaResolvido?.resolvido || false,
+                prioridade: "media"
+              });
+            }
+          }
+        }
+      });
+
+      // 3. Alertas Sanitários: Vacinas vencendo ou vencidas
+      sanitario?.forEach(reg => {
+        if (reg.proxima_dose) {
+          const dataProxima = new Date(reg.proxima_dose);
+          // Ajuste de fuso horário
+          const dataProximaAjustada = new Date(dataProxima.getTime() + dataProxima.getTimezoneOffset() * 60000);
+
+          const hoje = new Date();
+          const diffTempo = dataProximaAjustada.getTime() - hoje.getTime();
+          const diffDias = Math.ceil(diffTempo / (1000 * 60 * 60 * 24));
+
+          // Alerta para vencidas ou vencendo em 7 dias
+          if (diffDias <= 7) {
+            const alertaId = `sanitario-${reg.id}`;
+            const alertaResolvido = alertasResolvidos?.find(a => a.id === alertaId);
+
+            /* 
+               Se ainda não foi resolvido ou (foi resolvido mas o prazo mudou? Não, só se o usuário deletou o alerta). 
+               Vamos assumir que se o usuário clicou em "Resolver", ele já lidou com isso (ex: vacinou e criou novo registro).
+               Se ele criar novo registro, este alerta antigo ainda existirá? 
+               Não, porque este alerta é baseado no registro ANTERIOR que tem 'proxima_dose'. 
+               Se ele vacinar novamente, criará UM NOVO registro. O registro antigo CONTINUA lá.
+               Então o "Resolver" tem que persistir para este registro específico.
+            */
+
+            // Atrasadas (dias negativos) ou Próximas (0 a 7 dias)
+            const statusDesc = diffDias < 0 ? `ATRASADA há ${Math.abs(diffDias)} dias` : `vence em ${diffDias} dias`;
+            const prioridade = diffDias < 0 ? "alta" : "media";
+
+            novosAlertas.push({
+              id: alertaId,
+              tipo: "sanitario",
+              animal: reg.animais ? `${reg.animais.numero} - ${reg.animais.nome}` : "Desconhecido",
+              descricao: `Revacinação de ${reg.nome_vacina} ${statusDesc} (${new Date(reg.proxima_dose).toLocaleDateString()})`,
+              data: reg.proxima_dose,
+              resolvido: alertaResolvido?.resolvido || false,
+              prioridade: prioridade
+            });
+          }
+        }
+      });
+
+      // 4. Alertas Reprodutivos: Diagnóstico de Prenhez e Secagem
+      reproducao?.forEach(evento => {
+        const hoje = new Date();
+        const dataInseminacao = new Date(evento.data_inseminacao);
+        const diffDiasInseminacao = Math.floor((hoje.getTime() - dataInseminacao.getTime()) / (1000 * 60 * 60 * 24));
+
+        // Diagnóstico Pendente (> 30 dias após IA e sem diagnóstico)
+        if (!evento.data_diagnostico && diffDiasInseminacao >= 30) {
+          const alertaId = `diag-${evento.id}`;
+          const alertaResolvido = alertasResolvidos?.find(a => a.id === alertaId);
+
+          novosAlertas.push({
+            id: alertaId,
+            tipo: "inseminacao",
+            animal: evento.animais ? `${evento.animais.numero} - ${evento.animais.nome}` : "Desconhecido",
+            descricao: `Diagnóstico de gestação pendente (${diffDiasInseminacao} dias após IA).`,
+            data: evento.data_inseminacao, // Data de referência
+            resolvido: alertaResolvido?.resolvido || false,
+            prioridade: "alta"
+          });
+        }
+
+        // Alerta de Secagem (Gestão confirmada, ~220 dias de gestação = 7 meses) e ainda está lactante
+        // Precisaríamos checar se o animal está 'lactante', mas vamos assumir que se está prenhe, pode estar lactante.
+        // A lógica de "Secagem" geralmente é 60 dias antes do parto.
+        // Se temos `data_proximo_parto` no animal, podemos usar isso tbm.
+        // Mas vamos olhar pelo evento de reprodução "prenhe".
+        if (evento.status === 'prenhe' && evento.data_inseminacao) {
+          // Gestação média gado leiteiro ~280-285 dias.
+          // Secagem ideal: 60 dias antes do parto => ~220 dias de gestação.
+          if (diffDiasInseminacao >= 215 && diffDiasInseminacao <= 230) {
+            const alertaId = `secagem-${evento.id}`;
             const alertaResolvido = alertasResolvidos?.find(a => a.id === alertaId);
 
             novosAlertas.push({
               id: alertaId,
-              tipo: "producao",
-              animal: `${animal.numero} - ${animal.nome}`,
-              descricao: `Queda de ${Math.abs(variacao).toFixed(1)}% na produção nos últimos 3 dias`,
-              data: producoesAnimal[0].data,
+              tipo: "inseminacao", // Ou criar tipo 'secagem' se o Enum permitir, mas vou usar inseminacao ou parto
+              animal: evento.animais ? `${evento.animais.numero} - ${evento.animais.nome}` : "Desconhecido",
+              descricao: `Sugestão de secagem (Gestação de ${diffDiasInseminacao} dias).`,
+              data: new Date().toISOString(), // Alerta de hoje
               resolvido: alertaResolvido?.resolvido || false,
-              prioridade: "alta"
+              prioridade: "media"
             });
           }
         }

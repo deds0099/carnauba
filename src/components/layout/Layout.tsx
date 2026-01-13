@@ -11,7 +11,7 @@ export function Layout({ children }: PropsWithChildren) {
       {/* Desktop Sidebar */}
       <div className="hidden md:flex w-72 flex-col bg-[#1a3a2a] border-r border-[#234534] shadow-2xl z-20">
         <div className="flex items-center gap-3 p-6 border-b border-white/10">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden shadow-lg ring-1 ring-white/20 bg-white">
+          <div className="w-16 h-16 rounded-full flex items-center justify-center overflow-hidden shadow-lg ring-1 ring-white/20 bg-white">
             <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
           </div>
           <div className="flex flex-col">
@@ -46,7 +46,7 @@ export function Layout({ children }: PropsWithChildren) {
           }`}
       >
         <div className="flex items-center gap-3 p-6 border-b border-white/10">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden bg-white">
+          <div className="w-16 h-16 rounded-full flex items-center justify-center overflow-hidden bg-white">
             <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
           </div>
           <div className="flex flex-col">
