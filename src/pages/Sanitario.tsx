@@ -8,9 +8,7 @@ import { NovaVacinaDialog } from "@/components/sanitario/NovaVacinaDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { fixDateTimezone } from "@/lib/date-utils";
+import { formatDate } from "@/lib/date-utils";
 import { Edit, Trash2 } from "lucide-react";
 
 interface RegistroSanitario {
@@ -196,7 +194,7 @@ export default function Sanitario() {
                                 registrosFiltrados.map((reg) => (
                                     <tr key={reg.id} className="hover:bg-muted/20 transition-colors">
                                         <td className="p-4 text-sm font-medium text-foreground/80">
-                                            {format(fixDateTimezone(reg.data_aplicacao), "dd/MM/yyyy", { locale: ptBR })}
+                                            {formatDate(reg.data_aplicacao)}
                                         </td>
                                         <td className="p-4">
                                             <div className="flex flex-col">
@@ -216,7 +214,7 @@ export default function Sanitario() {
                                             {reg.proxima_dose ? (
                                                 <span className="flex items-center gap-1 text-amber-600 font-medium bg-amber-50 px-2 py-1 rounded-md">
                                                     <CalendarClock className="h-3 w-3" />
-                                                    {format(fixDateTimezone(reg.proxima_dose), "dd/MM/yyyy", { locale: ptBR })}
+                                                    {formatDate(reg.proxima_dose)}
                                                 </span>
                                             ) : "-"}
                                         </td>

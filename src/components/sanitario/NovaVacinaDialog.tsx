@@ -28,7 +28,11 @@ export function NovaVacinaDialog({ isOpen, onOpenChange, onSuccess, registroPara
 
     // Form states
     const [nomeVacina, setNomeVacina] = useState("");
-    const [dataAplicacao, setDataAplicacao] = useState(new Date().toISOString().split("T")[0]);
+    const [dataAplicacao, setDataAplicacao] = useState(() => {
+        const today = new Date();
+        today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
+        return today.toISOString().split("T")[0];
+    });
     const [lote, setLote] = useState("");
     const [dose, setDose] = useState("");
     const [responsavel, setResponsavel] = useState("");
@@ -78,7 +82,9 @@ export function NovaVacinaDialog({ isOpen, onOpenChange, onSuccess, registroPara
 
     const resetForm = () => {
         setNomeVacina("");
-        setDataAplicacao(new Date().toISOString().split("T")[0]);
+        const today = new Date();
+        today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
+        setDataAplicacao(today.toISOString().split("T")[0]);
         setLote("");
         setDose("");
         setResponsavel("");
