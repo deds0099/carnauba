@@ -220,6 +220,53 @@ const Auth = () => {
     }
   };
 
+  const onForgotPassword = async (data: ForgotPasswordFormValues) => {
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
+        redirectTo: `${window.location.origin}/auth`,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      toast.success("Email de recuperação enviado! Verifique sua caixa de entrada.");
+      setShowForgotPassword(false);
+      forgotPasswordForm.reset();
+    } catch (error: any) {
+      console.error("Erro ao enviar email de recuperação:", error);
+      toast.error(error.message || "Falha ao enviar email de recuperação.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const onResetPassword = async (data: ResetPasswordFormValues) => {
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: data.password,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      toast.success("Senha redefinida com sucesso! Você pode fazer login agora.");
+      setIsResettingPassword(false);
+      resetPasswordForm.reset();
+
+      // Limpar o hash da URL
+      window.location.hash = '';
+    } catch (error: any) {
+      console.error("Erro ao redefinir senha:", error);
+      toast.error(error.message || "Falha ao redefinir senha.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Se estiver em modo de reset de senha, mostrar apenas o formulário de nova senha
   if (isResettingPassword) {
     return (
