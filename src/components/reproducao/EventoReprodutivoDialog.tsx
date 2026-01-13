@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { fixDateTimezone } from "@/lib/date-utils";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -71,19 +72,19 @@ export function EventoReprodutivoDialog({ open, onOpenChange, animais, onSuccess
                 data_prevista_parto,
             };
 
-            // Adicionar campos específicos por tipo de evento
+            // Adicionar campos específicos por tipo de evento e corrigir timezone
             if (tipoEvento === "inseminacao") {
-                eventoData.data_inseminacao = formData.data_inseminacao;
+                eventoData.data_inseminacao = fixDateTimezone(formData.data_inseminacao);
                 eventoData.touro = formData.touro || null;
                 eventoData.tecnico = formData.tecnico || null;
                 eventoData.protocolo = formData.protocolo || null;
             } else if (tipoEvento === "diagnostico") {
-                eventoData.data_diagnostico = formData.data_diagnostico;
+                eventoData.data_diagnostico = fixDateTimezone(formData.data_diagnostico);
                 eventoData.resultado_diagnostico = formData.resultado_diagnostico;
             } else if (tipoEvento === "parto") {
-                eventoData.data_parto_real = formData.data_parto_real;
+                eventoData.data_parto_real = fixDateTimezone(formData.data_parto_real);
             } else if (tipoEvento === "secagem") {
-                eventoData.data_secagem = formData.data_secagem;
+                eventoData.data_secagem = fixDateTimezone(formData.data_secagem);
             }
 
             eventoData.observacoes = formData.observacoes || null;

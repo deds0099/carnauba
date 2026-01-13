@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { formatDate } from "@/lib/date-utils";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -177,7 +178,7 @@ export default function Reproducao() {
                               </span>
                             </div>
                             <p className="text-sm text-muted-foreground">
-                              {new Date(evento.data_inseminacao).toLocaleDateString()}
+                              {formatDate(evento.data_inseminacao)}
                               {evento.touro && ` • Touro: ${evento.touro}`}
                               {evento.resultado_diagnostico && ` • ${evento.resultado_diagnostico}`}
                             </p>

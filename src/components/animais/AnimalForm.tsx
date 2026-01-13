@@ -34,7 +34,7 @@ interface AnimalFormProps {
 
 export function AnimalForm({ defaultValues, onSubmit }: AnimalFormProps) {
   const { toast } = useToast();
-  
+
   const form = useForm<AnimalFormValues>({
     resolver: zodResolver(animalFormSchema),
     defaultValues: defaultValues || {
@@ -52,9 +52,9 @@ export function AnimalForm({ defaultValues, onSubmit }: AnimalFormProps) {
     const correctedValues = {
       ...values,
       data_nascimento: fixDateTimezone(values.data_nascimento),
-      data_proximo_parto: values.data_proximo_parto ? fixDateTimezone(values.data_proximo_parto) : "",
+      data_proximo_parto: values.data_proximo_parto ? fixDateTimezone(values.data_proximo_parto) : null,
     };
-    
+
     onSubmit(correctedValues);
     toast({
       title: "Animal cadastrado com sucesso",
@@ -79,7 +79,7 @@ export function AnimalForm({ defaultValues, onSubmit }: AnimalFormProps) {
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
             name="nome"
@@ -93,7 +93,7 @@ export function AnimalForm({ defaultValues, onSubmit }: AnimalFormProps) {
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
             name="data_nascimento"
@@ -107,7 +107,7 @@ export function AnimalForm({ defaultValues, onSubmit }: AnimalFormProps) {
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
             name="raca"
@@ -121,7 +121,7 @@ export function AnimalForm({ defaultValues, onSubmit }: AnimalFormProps) {
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
             name="data_proximo_parto"
@@ -135,15 +135,15 @@ export function AnimalForm({ defaultValues, onSubmit }: AnimalFormProps) {
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
             name="status"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Status</FormLabel>
-                <Select 
-                  onValueChange={field.onChange} 
+                <Select
+                  onValueChange={field.onChange}
                   defaultValue={field.value}
                 >
                   <FormControl>
@@ -162,7 +162,7 @@ export function AnimalForm({ defaultValues, onSubmit }: AnimalFormProps) {
             )}
           />
         </div>
-        
+
         <div className="flex justify-end">
           <Button type="submit">Salvar Animal</Button>
         </div>

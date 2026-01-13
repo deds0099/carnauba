@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatDate } from "@/lib/date-utils";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, AlertCircle, Syringe, Milk } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
@@ -76,16 +77,16 @@ export function CalendarioManejo({ acoes }: CalendarioManejoProps) {
                 <Card
                     key={index}
                     className={`border-none glass ring-1 overflow-hidden transition-all hover:shadow-md ${acao.prioridade === "alta" ? "ring-red-200 bg-red-50/50" :
-                            acao.prioridade === "media" ? "ring-amber-200 bg-amber-50/50" :
-                                "ring-blue-200 bg-blue-50/50"
+                        acao.prioridade === "media" ? "ring-amber-200 bg-amber-50/50" :
+                            "ring-blue-200 bg-blue-50/50"
                         }`}
                 >
                     <CardContent className="p-4">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-4 flex-1">
                                 <div className={`p-3 rounded-xl ${acao.prioridade === "alta" ? "bg-red-100 text-red-600" :
-                                        acao.prioridade === "media" ? "bg-amber-100 text-amber-600" :
-                                            "bg-blue-100 text-blue-600"
+                                    acao.prioridade === "media" ? "bg-amber-100 text-amber-600" :
+                                        "bg-blue-100 text-blue-600"
                                     }`}>
                                     {getIconByTipo(acao.tipo)}
                                 </div>
@@ -102,12 +103,12 @@ export function CalendarioManejo({ acoes }: CalendarioManejoProps) {
                                     </p>
                                     {acao.tipo === "diagnostico" && (
                                         <p className="text-xs text-muted-foreground mt-1">
-                                            Inseminação em {new Date(acao.evento.data_inseminacao).toLocaleDateString()}
+                                            Inseminação em {formatDate(acao.evento.data_inseminacao)}
                                         </p>
                                     )}
                                     {acao.tipo === "parto" && acao.evento.data_prevista_parto && (
                                         <p className="text-xs text-muted-foreground mt-1">
-                                            Parto previsto para {new Date(acao.evento.data_prevista_parto).toLocaleDateString()}
+                                            Parto previsto para {formatDate(acao.evento.data_prevista_parto)}
                                         </p>
                                     )}
                                 </div>
@@ -115,8 +116,8 @@ export function CalendarioManejo({ acoes }: CalendarioManejoProps) {
 
                             <div className="text-right">
                                 <div className={`text-2xl font-black ${acao.diasRestantes <= 0 ? "text-red-600" :
-                                        acao.diasRestantes <= 3 ? "text-amber-600" :
-                                            "text-blue-600"
+                                    acao.diasRestantes <= 3 ? "text-amber-600" :
+                                        "text-blue-600"
                                     }`}>
                                     {Math.abs(acao.diasRestantes)}
                                 </div>
