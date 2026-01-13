@@ -16,6 +16,8 @@ const Reproducao = lazy(() => import("./pages/Reproducao"));
 const Alertas = lazy(() => import("./pages/Alertas"));
 const Relatorios = lazy(() => import("./pages/Relatorios"));
 const Sanitario = lazy(() => import("./pages/Sanitario"));
+const Perfil = lazy(() => import("./pages/Perfil"));
+const Configuracoes = lazy(() => import("./pages/Configuracoes"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Loading component
@@ -127,6 +129,8 @@ function App() {
               <Route path="/alertas" element={<ProtectedRoute><Alertas /></ProtectedRoute>} />
               <Route path="/relatorios" element={<ProtectedRoute><Relatorios /></ProtectedRoute>} />
               <Route path="/sanitario" element={<ProtectedRoute><Sanitario /></ProtectedRoute>} />
+              <Route path="/perfil" element={<ProtectedRoute><Perfil /></ProtectedRoute>} />
+              <Route path="/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>

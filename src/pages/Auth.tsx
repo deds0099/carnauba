@@ -74,14 +74,20 @@ const Auth = () => {
 
   // Detectar se estamos em um fluxo de reset de senha
   useEffect(() => {
-    // Verificar se há um hash de recuperação de senha na URL
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    const type = hashParams.get('type');
+    const checkPasswordRecovery = async () => {
+      // Verificar se há um hash de recuperação de senha na URL
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const type = hashParams.get('type');
+      const accessToken = hashParams.get('access_token');
 
-    if (type === 'recovery') {
-      setIsResettingPassword(true);
-      toast.info("Defina sua nova senha abaixo");
-    }
+      // Se tem type=recovery OU se tem access_token (vindo do email)
+      if (type === 'recovery' || (accessToken && window.location.hash.includes('recovery'))) {
+        setIsResettingPassword(true);
+        toast.info("Defina sua nova senha abaixo");
+      }
+    };
+
+    checkPasswordRecovery();
   }, []);
 
   const loginForm = useForm<LoginFormValues>({
