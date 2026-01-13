@@ -71,6 +71,31 @@ export default function Sanitario() {
         }
     };
 
+    const handleDeleteRegistro = async (id: string) => {
+        if (!confirm("Tem certeza que deseja excluir este registro sanitário?")) return;
+
+        try {
+            const { error } = await supabase
+                .from("manejo_sanitario")
+                .delete()
+                .eq("id", id);
+
+            if (error) throw error;
+
+            toast({
+                title: "Registro excluído",
+                description: "O registro sanitário foi removido com sucesso.",
+            });
+            carregarRegistros();
+        } catch (error: any) {
+            toast({
+                title: "Erro ao excluir",
+                description: error.message,
+                variant: "destructive",
+            });
+        }
+    };
+
     const registrosFiltrados = registros.filter(reg =>
         reg.nome_vacina.toLowerCase().includes(busca.toLowerCase()) ||
         reg.animais.nome.toLowerCase().includes(busca.toLowerCase()) ||
@@ -238,6 +263,6 @@ export default function Sanitario() {
                 onSuccess={carregarRegistros}
                 registroParaEditar={registroParaEditar}
             />
-        </div >
+        </div>
     );
 }

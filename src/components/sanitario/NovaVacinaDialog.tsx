@@ -297,6 +297,9 @@ export function NovaVacinaDialog({ isOpen, onOpenChange, onSuccess, registroPara
                         <Textarea
                             id="obs"
                             placeholder="Detalhes adicionais..."
+                            value={observacoes}
+                            onChange={(e) => setObservacoes(e.target.value)}
+                        />
                     </div>
                 </div>
                 {!registroParaEditar && (
@@ -381,16 +384,15 @@ export function NovaVacinaDialog({ isOpen, onOpenChange, onSuccess, registroPara
                         </div>
                     </div>
                 )}
-            </div>
 
-            <DialogFooter>
-                <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-                <Button onClick={handleSubmit} disabled={loading}>
-                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Salvar Registros
-                </Button>
-            </DialogFooter>
-        </DialogContent>
-        </Dialog >
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+                    <Button onClick={handleSubmit} disabled={loading}>
+                        {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Salvar Registros
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     );
 }
