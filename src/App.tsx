@@ -80,8 +80,14 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 const AuthGuard = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isRecovery, setIsRecovery] = useState(false);
 
   useEffect(() => {
+    // Check URL for recovery hash immediately
+    if (window.location.hash.includes('type=recovery')) {
+      setIsRecovery(true);
+    }
+
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
@@ -89,7 +95,10 @@ const AuthGuard = ({ children }: { children: React.ReactNode }) => {
     });
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsRecovery(true);
+      }
       setUser(session?.user ?? null);
       setLoading(false);
     });
@@ -107,7 +116,8 @@ const AuthGuard = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
-  if (user) {
+  // Se o usuário estiver logado E NÃO for um fluxo de recuperação, redireciona para home
+  if (user && !isRecovery) {
     return <Navigate to="/" replace />;
   }
 
