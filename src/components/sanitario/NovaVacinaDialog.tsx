@@ -15,11 +15,12 @@ interface NovaVacinaDialogProps {
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
     onSuccess: () => void;
+    registroParaEditar?: any; // Using any to simplify type matching with the join
 }
 
 type ModoAplicacao = "individual" | "rebanho_completo" | "rebanho_exceto";
 
-export function NovaVacinaDialog({ isOpen, onOpenChange, onSuccess }: NovaVacinaDialogProps) {
+export function NovaVacinaDialog({ isOpen, onOpenChange, onSuccess, registroParaEditar }: NovaVacinaDialogProps) {
     const { toast } = useToast();
     const [loading, setLoading] = useState(false);
     const [animais, setAnimais] = useState<{ id: string; nome: string; numero: string }[]>([]);
@@ -41,10 +42,39 @@ export function NovaVacinaDialog({ isOpen, onOpenChange, onSuccess }: NovaVacina
     useEffect(() => {
         if (isOpen) {
             carregarAnimais();
+            if (registroParaEditar) {
+                // Pre-fill form for editing
+                setModoAplicacao("individual");
+                setNomeVacina(registroParaEditar.nome_vacina);
+                setDataAplicacao(registroParaEditar.data_aplicacao);
+                setLote(registroParaEditar.lote || "");
+                setDose(registroParaEditar.dose || "");
+                setResponsavel(registroParaEditar.responsavel || "");
+                setObservacoes(registroParaEditar.observacoes || "");
+                setProximaDose(registroParaEditar.proxima_dose || "");
+                // Assuming registroParaEditar contains the animal_id. If coming from the join query, we might need to adjust.
+                // Based on previous Sanitario.tsx query, it has animals object but not animal_id at top level?
+                // Actually the standard Supabase select * usually includes the FKs.
+                // Let's assume we can get the ID via the join or it was passed. 
+                // But wait, the Sanitario page select doesn't explicitly select animal_id, just `*, animais(...)`. 
+                // `*` includes animal_id.
+                // But `registros` in Sanitario.tsx interface doesn't have animal_id typed. 
+                // The actual runtime object from supabase `*` will have it.
+                // We'll rely on it being present or we might need to find the animal by name/number if TS complains, 
+                // but here we are using `any` for `registroParaEditar` prop to bypass strict typing for now or we type it better.
+                // Let's assume it has it.
+                if (registroParaEditar.animal_id) {
+                    setAnimaisSelecionados([registroParaEditar.animal_id]);
+                } else if (registroParaEditar.animais && registroParaEditar.animais.id) {
+                    // Fallback if structure is nested differently, but standard is FK is on the table
+                }
+            } else {
+                resetForm();
+            }
         } else {
             resetForm();
         }
-    }, [isOpen]);
+    }, [isOpen, registroParaEditar]);
 
     const resetForm = () => {
         setNomeVacina("");
@@ -145,9 +175,31 @@ export function NovaVacinaDialog({ isOpen, onOpenChange, onSuccess }: NovaVacina
                 proxima_dose: proximaDose || null
             }));
 
-            const { error } = await supabase
-                .from("manejo_sanitario")
-                .insert(records);
+            let error;
+
+            if (registroParaEditar) {
+                // Update existing record
+                const { error: updateError } = await supabase
+                    .from("manejo_sanitario")
+                    .update({
+                        data_aplicacao: dataAplicacao,
+                        nome_vacina: nomeVacina,
+                        lote: lote || null,
+                        dose: dose || null,
+                        responsavel: responsavel || null,
+                        observacoes: observacoes || null,
+                        proxima_dose: proximaDose || null,
+                        // We typically don't change the animal for an edit, preventing complex logic
+                    })
+                    .eq("id", registroParaEditar.id);
+                error = updateError;
+            } else {
+                // Insert new records
+                const { error: insertError } = await supabase
+                    .from("manejo_sanitario")
+                    .insert(records);
+                error = insertError;
+            }
 
             if (error) throw error;
 
@@ -174,7 +226,7 @@ export function NovaVacinaDialog({ isOpen, onOpenChange, onSuccess }: NovaVacina
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <Syringe className="h-5 w-5 text-primary" />
-                        Novo Registro Sanitário
+                        {registroParaEditar ? "Editar Registro Sanitário" : "Novo Registro Sanitário"}
                     </DialogTitle>
                     <DialogDescription>
                         Lance vacinas, vermífugos ou medicamentos para um ou múltiplos animais.
@@ -245,12 +297,9 @@ export function NovaVacinaDialog({ isOpen, onOpenChange, onSuccess }: NovaVacina
                         <Textarea
                             id="obs"
                             placeholder="Detalhes adicionais..."
-                            value={observacoes}
-                            onChange={(e) => setObservacoes(e.target.value)}
-                        />
                     </div>
-
-                    {/* Seleção de Animais */}
+                </div>
+                {!registroParaEditar && (
                     <div className="space-y-4 border-t pt-4">
                         <div className="flex flex-col gap-2">
                             <Label className="text-base font-semibold">Seleção de Animais</Label>
@@ -331,16 +380,17 @@ export function NovaVacinaDialog({ isOpen, onOpenChange, onSuccess }: NovaVacina
                             )}
                         </div>
                     </div>
-                </div>
+                )}
+            </div>
 
-                <DialogFooter>
-                    <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-                    <Button onClick={handleSubmit} disabled={loading}>
-                        {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Salvar Registros
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+            <DialogFooter>
+                <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+                <Button onClick={handleSubmit} disabled={loading}>
+                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Salvar Registros
+                </Button>
+            </DialogFooter>
+        </DialogContent>
+        </Dialog >
     );
 }

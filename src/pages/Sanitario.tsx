@@ -10,6 +10,8 @@ import { useToast } from "@/components/ui/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { fixDateTimezone } from "@/lib/date-utils";
+import { Edit, Trash2 } from "lucide-react";
 
 interface RegistroSanitario {
     id: string;
@@ -27,6 +29,7 @@ interface RegistroSanitario {
 export default function Sanitario() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [registros, setRegistros] = useState<RegistroSanitario[]>([]);
+    const [registroParaEditar, setRegistroParaEditar] = useState<RegistroSanitario | undefined>(undefined);
     const [busca, setBusca] = useState("");
     const { toast } = useToast();
 
@@ -154,6 +157,7 @@ export default function Sanitario() {
                                 <th className="text-left p-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Dose</th>
                                 <th className="text-left p-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Revacinação</th>
                                 <th className="text-left p-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Obs</th>
+                                <th className="text-right p-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Ações</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-black/5">
@@ -167,7 +171,7 @@ export default function Sanitario() {
                                 registrosFiltrados.map((reg) => (
                                     <tr key={reg.id} className="hover:bg-muted/20 transition-colors">
                                         <td className="p-4 text-sm font-medium text-foreground/80">
-                                            {format(new Date(reg.data_aplicacao), "dd/MM/yyyy", { locale: ptBR })}
+                                            {format(fixDateTimezone(reg.data_aplicacao), "dd/MM/yyyy", { locale: ptBR })}
                                         </td>
                                         <td className="p-4">
                                             <div className="flex flex-col">
@@ -187,12 +191,35 @@ export default function Sanitario() {
                                             {reg.proxima_dose ? (
                                                 <span className="flex items-center gap-1 text-amber-600 font-medium bg-amber-50 px-2 py-1 rounded-md">
                                                     <CalendarClock className="h-3 w-3" />
-                                                    {format(new Date(reg.proxima_dose), "dd/MM/yyyy", { locale: ptBR })}
+                                                    {format(fixDateTimezone(reg.proxima_dose), "dd/MM/yyyy", { locale: ptBR })}
                                                 </span>
                                             ) : "-"}
                                         </td>
                                         <td className="p-4 text-sm text-muted-foreground italic max-w-xs truncate">
                                             {reg.observacoes || "-"}
+                                        </td>
+                                        <td className="p-4 text-right">
+                                            <div className="flex items-center justify-end gap-2">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-8 w-8 text-primary/60 hover:text-primary hover:bg-primary/10"
+                                                    onClick={() => {
+                                                        setRegistroParaEditar(reg);
+                                                        setIsDialogOpen(true);
+                                                    }}
+                                                >
+                                                    <Edit className="h-4 w-4" />
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-8 w-8 text-destructive/60 hover:text-destructive hover:bg-destructive/10"
+                                                    onClick={() => handleDeleteRegistro(reg.id)}
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))
@@ -204,9 +231,13 @@ export default function Sanitario() {
 
             <NovaVacinaDialog
                 isOpen={isDialogOpen}
-                onOpenChange={setIsDialogOpen}
+                onOpenChange={(open) => {
+                    setIsDialogOpen(open);
+                    if (!open) setRegistroParaEditar(undefined);
+                }}
                 onSuccess={carregarRegistros}
+                registroParaEditar={registroParaEditar}
             />
-        </div>
+        </div >
     );
 }
