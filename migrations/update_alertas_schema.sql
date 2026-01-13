@@ -1,11 +1,10 @@
--- Migração: Adicionar coluna data_resolucao na tabela alertas
+-- Migração: Corrigir tipo da coluna ID e adicionar data_resolucao
 -- Execute este script no SQL Editor do Supabase
 
-ALTER TABLE public.alertas 
-ADD COLUMN IF NOT EXISTS data_resolucao TIMESTAMP WITH TIME ZONE;
+-- Deletamos a tabela antiga para recriar com o tipo correto (TEXT em vez de UUID)
+DROP TABLE IF EXISTS public.alertas;
 
--- Garantir que a tabela alertas existe (caso não exista, cria uma básica para evitar erros futuros)
-CREATE TABLE IF NOT EXISTS public.alertas (
+CREATE TABLE public.alertas (
     id TEXT PRIMARY KEY,
     user_id UUID NOT NULL REFERENCES auth.users(id),
     resolvido BOOLEAN DEFAULT FALSE,
